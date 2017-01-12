@@ -1,9 +1,8 @@
-package KMeans
+package org.upm.etsit.ging.KMeans
 
-import org.apache.spark.ml.{PipelineModel, Pipeline}
+import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.clustering.{KMeans, KMeansModel}
-import org.apache.spark.ml.feature.{OneHotEncoder, VectorAssembler, StringIndexer, StandardScaler}
-import org.apache.spark.ml.linalg.{Vector, Vectors}
+import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import scala.util.Random

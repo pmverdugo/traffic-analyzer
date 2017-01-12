@@ -1,24 +1,40 @@
-package KMeans
-import org.apache.spark.ml.{PipelineModel, Pipeline}
-import org.apache.spark.ml.clustering.{KMeans, KMeansModel}
-import org.apache.spark.ml.feature.{OneHotEncoder, VectorAssembler, StringIndexer, StandardScaler}
-import org.apache.spark.ml.linalg.{Vector, Vectors}
+package org.upm.etsit.ging.KMeans
+
+import org.apache.spark.ml.clustering.KMeans
+import org.apache.spark.ml.feature.{OneHotEncoder, StandardScaler, StringIndexer, VectorAssembler}
+import org.apache.spark.ml.{Pipeline, PipelineModel}
+import org.apache.spark.sql.{DataFrame, SparkSession}
+
 import scala.util.Random
 
 /**
   * Created by Administrator on 11/01/2017.
   */
-class Entropia {
+
+class Entropia(private val spark: SparkSession) {
 
   // calcula entropia
 
-  def entropia(counts: Iterable[Int]): Double = {
-    val values = counts.filter(_ > 0)
-    val n = values.map(_.toDouble).sum
-    values.map { v =>
-      val p = v / n
-      -p * math.log(p)
-    }.sum
+  def muestraResultados(data: DataFrame): Unit = {
+    (60 to 270 by 30).map(k => (k, costeEntropia(data, k))).foreach(println)
+
+    val pipelineModel = encajaPipeline(data, 180)
+    val countByClusteretiqueta = pipelineModel.transform(data).
+      select("cluster", "etiqueta").
+      groupBy("cluster", "etiqueta").count().
+      orderBy("cluster", "etiqueta")
+    countByClusteretiqueta.show()
+  }
+
+  def oneHotPipeline(inputCol: String): (Pipeline, String) = {
+    val indexer = new StringIndexer().
+      setInputCol(inputCol).
+      setOutputCol(inputCol + "_indexed")
+    val encoder = new OneHotEncoder().
+      setInputCol(inputCol + "_indexed").
+      setOutputCol(inputCol + "_vec")
+    val pipeline = new Pipeline().setStages(Array(indexer, encoder))
+    (pipeline, inputCol + "_vec")
   }
 
   def encajaPipeline(data: DataFrame, k: Int): PipelineModel = {
@@ -73,14 +89,12 @@ class Entropia {
     weightedClusterEntropy.sum / data.count()
   }
 
-  def muestraResultados(data: DataFrame): Unit = {
-    (60 to 270 by 30).map(k => (k, costeEntropia(data, k))).foreach(println)
-
-    val pipelineModel = encajaPipeline(data, 180)
-    val countByClusteretiqueta = pipelineModel.transform(data).
-      select("cluster", "etiqueta").
-      groupBy("cluster", "etiqueta").count().
-      orderBy("cluster", "etiqueta")
-    countByClusteretiqueta.show()
+  def entropia(counts: Iterable[Int]): Double = {
+    val values = counts.filter(_ > 0)
+    val n = values.map(_.toDouble).sum
+    values.map { v =>
+      val p = v / n
+      -p * math.log(p)
+    }.sum
   }
 }

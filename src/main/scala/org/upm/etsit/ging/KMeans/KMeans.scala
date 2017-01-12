@@ -4,8 +4,7 @@
 
 package org.upm.etsit.ging.KMeans
 
-import KMeans._
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.SparkSession
 
 object KMeans {
 
@@ -25,7 +24,7 @@ object KMeans {
 
     // deteccion de cifrado por KNN
     val correKMeans = new CorreKmeans(spark)
-    correKMeans.DetectaCifrado(data)
+    correKMeans.cuentaClusteres(data)
 
     // clustering por costes
     val costes = new Costes(spark)

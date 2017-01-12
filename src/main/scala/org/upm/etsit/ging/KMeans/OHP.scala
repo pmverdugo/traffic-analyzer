@@ -1,26 +1,20 @@
-package KMeans
+package org.upm.etsit.ging.KMeans
 
-import org.apache.spark.ml.{PipelineModel, Pipeline}
+import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.clustering.{KMeans, KMeansModel}
-import org.apache.spark.ml.feature.{OneHotEncoder, VectorAssembler, StringIndexer, StandardScaler}
-import org.apache.spark.ml.linalg.{Vector, Vectors}
+import org.apache.spark.ml.feature.{OneHotEncoder, StandardScaler, StringIndexer, VectorAssembler}
+import org.apache.spark.sql.{DataFrame, SparkSession}
+
 import scala.util.Random
 
 /**
   * Created by Administrator on 11/01/2017.
   */
-class OHP {
+class OHP(private val spark: SparkSession) {
   // Calcula OHP
 
-  def oneHotPipeline(inputCol: String): (Pipeline, String) = {
-    val indexer = new StringIndexer().
-      setInputCol(inputCol).
-      setOutputCol(inputCol + "_indexed")
-    val encoder = new OneHotEncoder().
-      setInputCol(inputCol + "_indexed").
-      setOutputCol(inputCol + "_vec")
-    val pipeline = new Pipeline().setStages(Array(indexer, encoder))
-    (pipeline, inputCol + "_vec")
+  def muestraResultados(data: DataFrame): Unit = {
+    (60 to 270 by 30).map(k => (k, calculaOHP(data, k))).foreach(println)
   }
 
   def calculaOHP(data: DataFrame, k: Int): Double = {
@@ -58,7 +52,14 @@ class OHP {
     kmeansModel.computeCost(pipelineModel.transform(data)) / data.count()
   }
 
-  def muestraResultados(data: DataFrame): Unit = {
-    (60 to 270 by 30).map(k => (k, calculaOHP(data, k))).foreach(println)
+  def oneHotPipeline(inputCol: String): (Pipeline, String) = {
+    val indexer = new StringIndexer().
+      setInputCol(inputCol).
+      setOutputCol(inputCol + "_indexed")
+    val encoder = new OneHotEncoder().
+      setInputCol(inputCol + "_indexed").
+      setOutputCol(inputCol + "_vec")
+    val pipeline = new Pipeline().setStages(Array(indexer, encoder))
+    (pipeline, inputCol + "_vec")
   }
 }
